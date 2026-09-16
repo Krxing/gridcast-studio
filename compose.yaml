@@ -1,0 +1,26 @@
+services:
+  gridcast:
+    build:
+      context: .
+      args:
+        INSTALL_HYBRID: ${INSTALL_HYBRID:-true}
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      APP_MODE: cloud
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      APP_DATA_DIR: /app/.data
+      APP_SETUP_TOKEN: ${APP_SETUP_TOKEN:?Set APP_SETUP_TOKEN to a random token of at least 16 characters}
+      APP_COOKIE_SECURE: ${APP_COOKIE_SECURE:-false}
+      APP_PUBLIC_ORIGIN: ${APP_PUBLIC_ORIGIN:-}
+    volumes:
+      - gridcast_data:/app/.data
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 20s
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  gridcast_data:

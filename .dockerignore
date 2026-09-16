@@ -1,0 +1,11 @@
+.venv
+.data
+.qa
+.env
+.git
+**/__pycache__
+frontend/node_modules
+frontend/dist
+*.docx
+*.log
+_tmp_doc.txt
