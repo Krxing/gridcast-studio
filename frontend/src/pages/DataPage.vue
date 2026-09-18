@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowDownToLine, ArrowUpRight, Check, Database, FileSpre
 import Chart from '../components/Chart.vue'
 import Modal from '../components/Modal.vue'
 import { api, act, canEdit, dateTime, number, notify, refresh, state, trackJob } from '../state'
+import { PALETTE } from '../charts.js'
 
 const selected = ref(null)
 const query = ref('')
@@ -27,10 +28,10 @@ async function appendRows() {
 }
 const filtered = computed(() => state.datasets.filter(item => !query.value || `${item.name} ${item.scene}`.toLowerCase().includes(query.value.toLowerCase())))
 const chartOption = computed(() => ({
-  color: ['#198067'], grid: { left: 42, right: 18, top: 18, bottom: 32 }, tooltip: { trigger: 'axis' },
+  color: [PALETTE.primary], grid: { left: 42, right: 18, top: 18, bottom: 32 }, tooltip: { trigger: 'axis' },
   xAxis: { type: 'category', data: detail.value?.series?.map(item => item.timestamp) || [], axisLabel: { formatter: value => value.slice(5, 10) } },
   yAxis: { type: 'value', name: 'kW', splitLine: { lineStyle: { type: 'dashed', color: '#edf1ee' } } },
-  series: [{ name: '负荷', type: 'line', smooth: .2, symbol: 'none', data: detail.value?.series?.map(item => item.load) || [], areaStyle: { color: '#cae8dc', opacity: .35 } }],
+  series: [{ name: '负荷', type: 'line', smooth: .2, symbol: 'none', data: detail.value?.series?.map(item => item.load) || [], areaStyle: { color: PALETTE.area, opacity: .35 } }],
 }))
 function chooseFile(event) { uploadFile.value = event.target.files?.[0] || null; if (uploadFile.value && !uploadName.value) uploadName.value = uploadFile.value.name.replace(/\.csv$/i, '') }
 async function upload() {

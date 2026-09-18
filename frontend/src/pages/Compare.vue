@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { GitCompare, ShieldCheck } from 'lucide-vue-next'
 import Chart from '../components/Chart.vue'
 import { dateTime, kinds, number, state } from '../state'
+import { PALETTE } from '../charts.js'
 const selected = ref('')
 const groups = computed(() => {
   const result = new Map()
@@ -15,7 +16,7 @@ const groups = computed(() => {
 watch(groups, values => { if (!values.some(item => item.key === selected.value)) selected.value = values[0]?.key || '' }, { immediate: true })
 const comparable = computed(() => state.models.filter(item => item.metrics?.evaluation_key === selected.value && selected.value).sort((first, second) => first.metrics.mae - second.metrics.mae))
 const reference = computed(() => comparable.value[0]?.metrics)
-const option = computed(() => ({ color: ['#21876b', '#a9c9bb'], tooltip: { trigger: 'axis' }, legend: { top: 0 }, grid: { left: 55, right: 20, top: 45, bottom: 70 }, xAxis: { type: 'category', data: comparable.value.map(item => item.name), axisLabel: { width: 120, overflow: 'truncate', rotate: 12 } }, yAxis: { type: 'value', name: 'kW', splitLine: { lineStyle: { type: 'dashed', color: '#edf1ee' } } }, series: ['mae', 'rmse'].map(key => ({ name: key.toUpperCase(), type: 'bar', data: comparable.value.map(item => item.metrics[key]), barMaxWidth: 36, itemStyle: { borderRadius: [4, 4, 0, 0] } })) }))
+const option = computed(() => ({ color: PALETTE.compare, tooltip: { trigger: 'axis' }, legend: { top: 0 }, grid: { left: 55, right: 20, top: 45, bottom: 70 }, xAxis: { type: 'category', data: comparable.value.map(item => item.name), axisLabel: { width: 120, overflow: 'truncate', rotate: 12 } }, yAxis: { type: 'value', name: 'kW', splitLine: { lineStyle: { type: 'dashed', color: PALETTE.axis.split } } }, series: ['mae', 'rmse'].map(key => ({ name: key.toUpperCase(), type: 'bar', data: comparable.value.map(item => item.metrics[key]), barMaxWidth: 36, itemStyle: { borderRadius: [4, 4, 0, 0] } })) }))
 </script>
 <template>
   <div class="page-intro"><div><div class="eyebrow">EVALUATION LAB</div><h1>评估对比<span class="title-dot"></span></h1><p>在同一份证据上比较，而不是拼凑不同实验的数字。</p></div><a class="button primary" href="#models"><GitCompare :size="16" />训练对照模型</a></div>

@@ -4,6 +4,7 @@ import { Activity, Download, Play, Printer, ShieldCheck } from 'lucide-vue-next'
 import ForecastChart from '../components/ForecastChart.vue'
 import Chart from '../components/Chart.vue'
 import { api, act, dateTime, number, notify, refresh, state, trackJob } from '../state'
+import { PALETTE } from '../charts.js'
 
 const datasetId = ref(state.datasets[0]?.id || '')
 const modelId = ref('')
@@ -17,7 +18,7 @@ const model = computed(() => available.value.find(item => item.id === modelId.va
 const dataset = computed(() => state.datasets.find(item => item.id === datasetId.value))
 const explanation = computed(() => record.value?.result.explanation.items || [])
 const explanationMax = computed(() => Math.max(...explanation.value.map(item => Math.abs(item.value)), 1))
-const widthOption = computed(() => ({ color: ['#21876b'], grid: { left: 48, right: 15, top: 30, bottom: 30 }, tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: record.value?.result.series.map((item, index) => index + 1), name: '步' }, yAxis: { type: 'value', name: '区间宽度 kW', splitLine: { lineStyle: { color: '#edf1ee', type: 'dashed' } } }, series: [{ type: 'bar', data: record.value?.result.series.map(item => item.upper - item.lower), barMaxWidth: 14, itemStyle: { borderRadius: [3, 3, 0, 0] } }] }))
+const widthOption = computed(() => ({ color: [PALETTE.primary], grid: { left: 48, right: 15, top: 30, bottom: 30 }, tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: record.value?.result.series.map((item, index) => index + 1), name: '步' }, yAxis: { type: 'value', name: '区间宽度 kW', splitLine: { lineStyle: { color: PALETTE.axis.split, type: 'dashed' } } }, series: [{ type: 'bar', data: record.value?.result.series.map(item => item.upper - item.lower), barMaxWidth: 14, itemStyle: { borderRadius: [3, 3, 0, 0] } }] }))
 watch(available, values => { if (!values.some(item => item.id === modelId.value)) modelId.value = (values.find(item => item.status === 'active') || values[0])?.id || '' }, { immediate: true })
 watch(() => state.datasets, values => { if (!datasetId.value) datasetId.value = values[0]?.id || '' })
 watch(() => state.forecasts, values => { if (!selectedId.value) selectedId.value = values[0]?.id || '' })
