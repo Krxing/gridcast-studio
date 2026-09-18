@@ -58,15 +58,17 @@ def main():
             if item.name not in (name, 'source.tar'):
                 item.rename(stage / name / item.name)
         for extra in EXTRA_FILES:
+            source = ROOT / extra
             target = stage / name / extra
             target.parent.mkdir(parents=True, exist_ok=True)
-            if extra.is_dir():
-                for file in extra.rglob('*'):
-                    relative = target / file.relative_to(ROOT / extra)
-                    relative.parent.mkdir(parents=True, exist_ok=True)
-                    relative.write_bytes(file.read_bytes())
+            if source.is_dir():
+                for file in source.rglob('*'):
+                    if file.is_file():
+                        destination = target / file.relative_to(source)
+                        destination.parent.mkdir(parents=True, exist_ok=True)
+                        destination.write_bytes(file.read_bytes())
             else:
-                target.write_bytes((ROOT / extra).read_bytes())
+                target.write_bytes(source.read_bytes())
 
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as bundle:
             for file in sorted((stage / name).rglob('*')):
