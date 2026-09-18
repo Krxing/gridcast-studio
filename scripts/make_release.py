@@ -48,10 +48,11 @@ def main():
 
     with tempfile.TemporaryDirectory() as temp:
         stage = Path(temp)
-        archive = stage / 'source.tar'
-        with open(archive, 'wb') as handle:
-            handle.write(subprocess.run(['git', 'archive', 'HEAD'], cwd=ROOT, capture_output=True).stdout)
-        run(['tar', '-xf', str(archive), '-C', str(stage)])
+        archive_bytes = subprocess.run(['git', 'archive', 'HEAD'], cwd=ROOT, capture_output=True).stdout
+        import io
+        import tarfile
+        with tarfile.open(fileobj=io.BytesIO(archive_bytes)) as archive:
+            archive.extractall(stage, filter='data')
         (stage / name).mkdir()
         for item in stage.iterdir():
             if item.name not in (name, 'source.tar'):
