@@ -13,7 +13,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -24,7 +24,8 @@ EXTRA_FILES = [
 
 
 def run(command):
-    result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, shell=(sys.platform == 'win32'))
+    result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
+                            shell=(sys.platform == 'win32'), check=False)
     if result.returncode != 0:
         sys.exit(f'命令失败 {" ".join(command)}\n{result.stderr.strip()}')
     return result.stdout.strip()
@@ -35,7 +36,7 @@ def main():
         sys.exit('工作区有未提交改动，请先提交或暂存（保证交付内容与版本库一致）。')
 
     sha = run(['git', 'rev-parse', '--short', 'HEAD'])
-    version = f'{date.today():%Y%m%d}-{sha}'
+    version = f'{datetime.now().astimezone():%Y%m%d}-{sha}'
     name = f'gridcast-{version}'
 
     for extra in EXTRA_FILES:
@@ -48,7 +49,7 @@ def main():
 
     with tempfile.TemporaryDirectory() as temp:
         stage = Path(temp)
-        archive_bytes = subprocess.run(['git', 'archive', 'HEAD'], cwd=ROOT, capture_output=True).stdout
+        archive_bytes = subprocess.run(['git', 'archive', 'HEAD'], cwd=ROOT, capture_output=True, check=True).stdout
         import io
         import tarfile
         with tarfile.open(fileobj=io.BytesIO(archive_bytes)) as archive:

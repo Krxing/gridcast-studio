@@ -1,20 +1,16 @@
 import importlib.util
-import io
 import os
 import secrets
 import sqlite3
 import subprocess
 import sys
 import threading
-import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from typing import Literal
 
-import numpy as np
 import pandas as pd
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from statsmodels.tsa.seasonal import STL
@@ -307,7 +303,7 @@ def compare_models(ids: str = Query(..., description='逗号分隔的模型 ID �
     if len(id_list) < 2:
         raise HTTPException(422, '至少提供 2 个模型 ID')
     rows = [store.one('SELECT * FROM models WHERE id=?', (model_id,)) for model_id in id_list]
-    missing = [model_id for model_id, row in zip(id_list, rows) if row is None]
+    missing = [model_id for model_id, row in zip(id_list, rows, strict=True) if row is None]
     if missing:
         raise HTTPException(404, f'找不到以下模型：{", ".join(missing)}')
     return [public_model(row) for row in rows]

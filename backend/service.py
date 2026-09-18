@@ -1,6 +1,4 @@
-from datetime import datetime, timezone
-
-import numpy as np
+from datetime import UTC, datetime
 
 from backend import datasets, engine, store
 
@@ -64,7 +62,7 @@ def refresh(snapshot):
             result.update(engine.forecast(active, snapshot, 'future', .95))
     new_points = snapshot['rows'] - active['params']['snapshot_rows']
     last_model = store.one('SELECT * FROM models WHERE dataset_id=? ORDER BY created_at DESC LIMIT 1', (snapshot['id'],))
-    age_hours = (datetime.now(timezone.utc) - datetime.fromisoformat(last_model['created_at'])).total_seconds() / 3600
+    age_hours = (datetime.now(UTC) - datetime.fromisoformat(last_model['created_at'])).total_seconds() / 3600
     has_training = store.one("SELECT id FROM models WHERE dataset_id=? AND status='training'", (snapshot['id'],))
     threshold_met = (recent_wape is not None and recent_wape >= policy['error_threshold']) or drift > 2.5
     if policy['enabled'] and new_points >= policy['minimum_points'] and age_hours >= policy['cooldown_hours'] and threshold_met and not has_training:

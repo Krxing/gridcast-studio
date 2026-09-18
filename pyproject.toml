@@ -1,0 +1,16 @@
+[tool.ruff]
+line-length = 160
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "DTZ", "BLE", "PLW"]
+# B008：FastAPI 官方推荐在默认参数中使用 Depends()/File()，属惯用法而非缺陷
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# worker 必须捕获任意异常：单条任务失败要落库标记并保持计算进程存活
+"backend/worker.py" = ["BLE001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: 完整业务闭环，含真实训练，耗时较长"]

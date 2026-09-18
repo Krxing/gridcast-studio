@@ -150,8 +150,11 @@ backend/security.py   用户权限与会话
 frontend/src/pages/   总览、数据、模型、预测、对比、分解、监测、设置
 deploy/               systemd 服务与 Nginx HTTPS 反代示例
 scripts/              交付打包脚本 make_release.py
+tests/                pytest 测试套件（数据校验、路径可移植性、业务闭环集成）
 docs/                 需求覆盖、部署手册与验收记录
 ```
+
+开发自检：`pip install -r requirements-dev.txt` 后运行 `pytest`（含真实训练的集成测试约需 1-2 分钟，快速检查用 `pytest -m "not integration"`）与 `ruff check backend run.py scripts tests`。
 
 实际接口以服务 `/docs` 的 OpenAPI 为准，采用 HTTP 状态码及 JSON 对象；没有照搬原文 `{code,message,data}` 包装或全部路径。前端采用哈希路由、Vue 3 + ECharts 和自定义绿色主题，而非 Element Plus 蓝色主题。所有字体使用系统字体，资源构建到本地，不依赖 CDN。
 

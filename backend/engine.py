@@ -17,7 +17,7 @@ GROUP_NAMES = {'load': '历史负荷', 'calendar': '时间与工作日', 'temper
 def build_spec(frame, interval, horizon):
     period = 1440 // interval
     window = max(period, min(max(2 * period, 24), 192))
-    lags = sorted(set([1, 2, 3, 6, 12, period, 2 * period]))
+    lags = sorted({1, 2, 3, 6, 12, period, 2 * period})
     lags = [lag for lag in lags if lag <= window]
     exogenous = [column for column in datasets.OPTIONAL if column in frame]
     return {'period': period, 'window': window, 'lags': lags, 'exogenous': exogenous,
@@ -192,7 +192,8 @@ def train(model, snapshot, job_id):
                        'interval_method': '独立校准段标准化残差经验区间；时序相关下无分布无关覆盖保证',
                        'crps_method': '校准残差经验预测分布，48 次可复现抽样估计',
                        'is_demo': bool(snapshot['is_demo'])})
-    evaluation['evaluation_key'] = hashlib.sha256(f'{snapshot["id"]}:{snapshot["version"]}:{horizon}:{evaluation["test_start"]}:{evaluation["test_end"]}'.encode()).hexdigest()[:16]
+    key_material = f'{snapshot["id"]}:{snapshot["version"]}:{horizon}:{evaluation["test_start"]}:{evaluation["test_end"]}'
+    evaluation['evaluation_key'] = hashlib.sha256(key_material.encode()).hexdigest()[:16]
     previous_id = model['params'].get('previous_model_id')
     if previous_id:
         previous = store.one('SELECT * FROM models WHERE id=?', (previous_id,))
@@ -288,7 +289,7 @@ def forecast(model, snapshot, mode, confidence):
 def enrich_forecast(record):
     snapshot = datasets.get_dataset(record['dataset_id'])
     frame = datasets.load_frame(snapshot)
-    actual_map = dict(zip(frame['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S'), frame['load']))
+    actual_map = dict(zip(frame['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S'), frame['load'], strict=True))
     rows = record['result']['series']
     for row in rows:
         row['actual'] = float(actual_map[row['timestamp']]) if row['timestamp'] in actual_map else None

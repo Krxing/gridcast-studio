@@ -32,7 +32,12 @@ def validate(frame, expected_interval=None):
     if not 2 <= len(frame) <= MAX_ROWS:
         raise ValueError('数据需包含 2 至 100000 行')
     frame = frame[['timestamp', 'load'] + [column for column in OPTIONAL if column in frame]]
-    frame['timestamp'] = pd.to_datetime(frame['timestamp'], errors='coerce', format='mixed')
+    try:
+        frame['timestamp'] = pd.to_datetime(frame['timestamp'], errors='coerce', format='mixed')
+    except ValueError as error:
+        if 'Mixed timezones' in str(error):
+            raise ValueError('时间戳时区必须一致，不能混用有时区和无时区时间') from error
+        raise
     if frame['timestamp'].isna().any():
         raise ValueError('存在无法解析的时间，请使用 YYYY-MM-DD HH:mm:ss')
     try:

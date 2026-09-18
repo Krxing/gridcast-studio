@@ -1,7 +1,7 @@
 import os
 import secrets
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -28,7 +28,7 @@ def password_hash(password):
 
 
 def session(response: Response, user):
-    token = jwt.encode({'sub': user['id'], 'exp': datetime.now(timezone.utc) + timedelta(hours=8)}, SECRET, algorithm='HS256')
+    token = jwt.encode({'sub': user['id'], 'exp': datetime.now(UTC) + timedelta(hours=8)}, SECRET, algorithm='HS256')
     response.set_cookie('gridcast_session', token, max_age=28800, httponly=True, samesite='strict',
                         secure=os.environ.get('APP_COOKIE_SECURE', 'false').lower() == 'true')
 
@@ -59,7 +59,7 @@ def current_user(request: Request):
             raise ValueError('用户不存在')
         return public_user(user)
     except (jwt.PyJWTError, KeyError, ValueError):
-        raise HTTPException(401, '登录已过期，请重新登录')
+        raise HTTPException(401, '登录已过期，请重新登录') from None
 
 
 def public_user(user):
