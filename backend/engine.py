@@ -197,7 +197,7 @@ def train(model, snapshot, job_id):
     if previous_id:
         previous = store.one('SELECT * FROM models WHERE id=?', (previous_id,))
         if previous and previous['artifact'] and previous['horizon'] == horizon:
-            old_point, _, _ = infer(load_bundle(previous['artifact']), frame, test_origins)
+            old_point, _, _ = infer(load_bundle(store.data_path(previous['artifact'])), frame, test_origins)
             old_metrics = metrics(test_actual, old_point)
             evaluation['candidate_review'] = {'previous_model_id': previous_id, 'previous_mae': old_metrics['mae'],
                                               'candidate_mae': evaluation['mae'], 'same_window': True,
@@ -207,7 +207,7 @@ def train(model, snapshot, job_id):
     artifact = store.DATA / 'models' / f'{model["id"]}.joblib'
     joblib.dump(bundle, artifact, compress=3)
     store.execute('UPDATE models SET status=?, artifact=?, metrics=? WHERE id=?',
-                  ('ready', str(artifact), store.encode(evaluation), model['id']))
+                  ('ready', f'models/{artifact.name}', store.encode(evaluation), model['id']))
     store.progress(job_id, 96, f'测试完成：MAE {evaluation["mae"]:.2f} kW；等待人工上线')
     store.event('模型训练完成', f'{model["name"]} · MAE {evaluation["mae"]:.2f} kW')
     return {'model_id': model['id']}
@@ -252,7 +252,7 @@ def explanation(bundle, frame, origin, point):
 
 def forecast(model, snapshot, mode, confidence):
     started = time.perf_counter()
-    bundle = load_bundle(model['artifact'])
+    bundle = load_bundle(store.data_path(model['artifact']))
     frame = datasets.load_frame(snapshot)
     if snapshot['interval_minutes'] != bundle['spec']['interval']:
         raise ValueError('数据采样间隔与模型不一致')

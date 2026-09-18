@@ -85,6 +85,29 @@ def initialize():
                                 'cooldown_hours': 24, 'error_threshold': 15.0}}
         for key, value in defaults.items():
             database.execute('INSERT OR IGNORE INTO settings VALUES (?,?)', (key, encode(value)))
+    migrate_paths()
+
+
+def data_path(value):
+    path = Path(value)
+    if path.is_absolute():
+        relocated = DATA / Path(*path.parts[-2:])
+        if relocated.exists():
+            return relocated
+        return path
+    return (DATA / path)
+
+
+def migrate_paths():
+    subfolders = [('datasets', 'path', 'datasets'), ('models', 'artifact', 'models')]
+    with connection() as database:
+        for table, column, folder in subfolders:
+            rows = database.execute(f'SELECT id, {column} AS stored FROM {table} WHERE {column} IS NOT NULL').fetchall()
+            for row in rows:
+                stored = Path(row['stored'])
+                if stored.is_absolute():
+                    database.execute(f'UPDATE {table} SET {column}=? WHERE id=?',
+                                     (f'{folder}/{stored.name}', row['id']))
 
 
 def row_dict(row):

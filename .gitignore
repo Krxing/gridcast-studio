@@ -9,3 +9,4 @@ __pycache__/
 .qa/
 *.docx
 _tmp_doc.txt
+dist-release/

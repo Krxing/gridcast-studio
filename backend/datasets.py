@@ -85,7 +85,7 @@ def get_dataset(dataset_id):
 
 
 def load_frame(dataset):
-    frame = pd.read_csv(dataset['path'])
+    frame = pd.read_csv(store.data_path(dataset['path']))
     frame['timestamp'] = pd.to_datetime(frame['timestamp'])
     return frame
 
@@ -98,7 +98,7 @@ def save_new(frame, name, scene, is_demo=False):
     store.execute('INSERT INTO datasets VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
                   (dataset_id, name.strip()[:100], scene[:60], int(is_demo), 1, len(frame), interval,
                    frame['timestamp'].iloc[0].isoformat(), frame['timestamp'].iloc[-1].isoformat(),
-                   str(path), store.encode(quality), store.now()))
+                   f'datasets/{path.name}', store.encode(quality), store.now()))
     store.event('数据集已创建', f'{name} · {len(frame)} 条 · {interval} 分钟')
     return get_dataset(dataset_id)
 
@@ -118,7 +118,7 @@ def append(dataset_id, new_frame):
         path = store.DATA / 'datasets' / f'{dataset_id}_v{version}.csv'
         combined.to_csv(path, index=False)
         database.execute('UPDATE datasets SET version=?, rows=?, end=?, path=?, quality=? WHERE id=?',
-                         (version, len(combined), combined['timestamp'].iloc[-1].isoformat(), str(path), store.encode(quality), dataset_id))
+                         (version, len(combined), combined['timestamp'].iloc[-1].isoformat(), f'datasets/{path.name}', store.encode(quality), dataset_id))
     store.event('增量数据已接入', f'{dataset["name"]} · 新增 {len(new_frame)} 条 · v{version}')
     return get_dataset(dataset_id)
 

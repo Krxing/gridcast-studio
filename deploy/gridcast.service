@@ -1,0 +1,30 @@
+# GridCast Studio systemd 单元（裸机部署用）
+# 安装：cp deploy/gridcast.service /etc/systemd/system/
+#       systemctl daemon-reload && systemctl enable --now gridcast
+# 假设应用安装在 /opt/gridcast，虚拟环境位于 /opt/gridcast/.venv。
+# 仅允许同时运行一个实例（单 API + 单 worker），不要复制成多个单元同时启动。
+
+[Unit]
+Description=GridCast Studio load forecasting prototype
+After=network.target
+
+[Service]
+Type=simple
+User=gridcast
+Group=gridcast
+WorkingDirectory=/opt/gridcast
+EnvironmentFile=/opt/gridcast/.env
+ExecStart=/opt/gridcast/.venv/bin/python run.py
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=25
+KillMode=mixed
+
+# 基础加固；按服务器安全策略可进一步收紧
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/opt/gridcast/.data
+
+[Install]
+WantedBy=multi-user.target

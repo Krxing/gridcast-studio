@@ -94,6 +94,8 @@ CRPS 是使用 48 次校准残差抽样的近似值。解释采用分组输入�
 
 ## 5. 双模式部署
 
+完整服务器部署步骤（Docker Compose 与裸机 systemd + Nginx 两种方式、HTTPS、备份恢复、故障排查、上线检查清单）见 **`docs/部署手册.md`**。交付他人时先运行 `python scripts/make_release.py` 生成含预构建前端的干净 zip。
+
 ### 本地
 
 默认仅绑定 `127.0.0.1:8000`，SQLite、CSV 和模型保存在 `.data`。模型训练在独立工作进程，API 保持单进程。复制 `.env.example` 为 `.env` 可改端口、模式和数据目录。
@@ -130,7 +132,7 @@ docker compose logs -f gridcast
 
 `.data` 包括 `gridcast.db`、版本化 CSV、模型文件、签名密钥和工作日志，均不应公开或提交版本库。模型文件由内部训练生成，通过 joblib 加载；**不要放入来源不可信的模型文件**。
 
-备份：停止应用，整体复制 `.data`，再启动。恢复时整体放回同一部署路径（数据库中的文件路径是绝对路径）。本地直接复制到不同路径或迁移到 Linux 容器需要更新存储路径，目前无一键跨路径迁移工具。
+备份：停止应用，整体复制 `.data`，再启动。数据库中的数据集和模型文件路径按**相对路径**存储，`.data` 整体拷贝到其他机器、盘符或 Linux 容器后可直接使用；旧版本数据库中的绝对路径会在服务启动时自动迁移为相对路径。
 
 应用重启后，排队任务保留，原运行中任务标记失败并可重新提交；已保存模型、预测和用户仍在。取消仅限排队任务。暂不提供强制中断计算、密码找回、MFA 或其他会话自动撤销。
 
@@ -146,7 +148,9 @@ backend/worker.py     独立异步任务工作进程
 backend/store.py      SQLite 与持久化
 backend/security.py   用户权限与会话
 frontend/src/pages/   总览、数据、模型、预测、对比、分解、监测、设置
-docs/                 需求覆盖与验收记录
+deploy/               systemd 服务与 Nginx HTTPS 反代示例
+scripts/              交付打包脚本 make_release.py
+docs/                 需求覆盖、部署手册与验收记录
 ```
 
 实际接口以服务 `/docs` 的 OpenAPI 为准，采用 HTTP 状态码及 JSON 对象；没有照搬原文 `{code,message,data}` 包装或全部路径。前端采用哈希路由、Vue 3 + ECharts 和自定义绿色主题，而非 Element Plus 蓝色主题。所有字体使用系统字体，资源构建到本地，不依赖 CDN。
