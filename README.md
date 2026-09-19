@@ -131,7 +131,7 @@ docker compose up --build -d
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                                    # 全部 13 个用例（集成含真实训练，约 1-2 分钟）
+pytest                                    # 全部 23 个用例（集成含真实训练，约 1-2 分钟）
 pytest -m "not integration"               # 快速单元检查
 ruff check backend run.py scripts tests   # 代码规范
 ```

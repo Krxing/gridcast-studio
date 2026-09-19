@@ -136,7 +136,10 @@ def execute(sql, parameters=()):
 
 
 def event(title, detail='', level='info'):
-    execute('INSERT INTO events VALUES (?,?,?,?,?)', (uid(), level, title, detail, now()))
+    with connection() as database:
+        database.execute('INSERT INTO events VALUES (?,?,?,?,?)', (uid(), level, title, detail, now()))
+        database.execute('DELETE FROM events WHERE id NOT IN '
+                         '(SELECT id FROM events ORDER BY created_at DESC LIMIT 1000)')
 
 
 def setting(key):
